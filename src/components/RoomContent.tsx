@@ -1,12 +1,51 @@
 import { Box, Cylinder, Plane, Sphere, useTexture } from "@react-three/drei";
 import * as THREE from "three";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import image1 from "@/assets/image 1.png";
 import image2 from "@/assets/image 2.png";
 import image3 from "@/assets/image 3.png";
 import image4 from "@/assets/image 4.png";
 import image5 from "@/assets/image 5.png";
 import image6 from "@/assets/image 6.png";
+import image7 from "@/assets/image 7.png";
+import image8 from "@/assets/image 8.png";
+import image9 from "@/assets/image 9.png";
+import image10 from "@/assets/image 10.png";
+import image11 from "@/assets/image 11.png";
+import image12 from "@/assets/image 12.png";
+import image13 from "@/assets/image 13.png";
+import image14 from "@/assets/image 14.png";
+import image15 from "@/assets/image 15.png";
+import image16 from "@/assets/image 16.png";
+import image17 from "@/assets/image 17.png";
+import image18 from "@/assets/image 18.png";
+import image19 from "@/assets/image 19.png";
+import image20 from "@/assets/image 20.png";
+import image21 from "@/assets/image 21.png";
+import image22 from "@/assets/image 22.png";
+import image23 from "@/assets/image 23.png";
+import image24 from "@/assets/image 24.png";
+import image25 from "@/assets/image 25.png";
+import image26 from "@/assets/image 26.png";
+import image27 from "@/assets/image 27.png";
+import image28 from "@/assets/image 28.png";
+import image29 from "@/assets/image 29.png";
+import image30 from "@/assets/image 30.png";
+import image31 from "@/assets/image 31.png";
+import image32 from "@/assets/image 32.png";
+import image33 from "@/assets/image 33.png";
+import image34 from "@/assets/image 34.png";
+import image35 from "@/assets/image 35.png";
+import image36 from "@/assets/image 36.png";
+import image37 from "@/assets/image 37.png";
+import image38 from "@/assets/image 38.png";
+import image39 from "@/assets/image 39.png";
+import image40 from "@/assets/image 40.png";
+import image41 from "@/assets/image 41.png";
+import image42 from "@/assets/image 42.png";
+import image43 from "@/assets/image 43.png";
+import image44 from "@/assets/image 44.png";
+import image45 from "@/assets/image 45.png";
 import frameBgImage from "@/assets/frame-bg.jpg";
 import { BirthdayCake } from "./BirthdayCake";
 import { FlowerBouquet } from "./FlowerBouquet";
@@ -52,17 +91,152 @@ const calculateFrameDimensions = (texture: THREE.Texture, maxSize = 0.9) => {
 };
 
 const TexturedObjects = () => {
-  const [img1Texture, img2Texture, img3Texture, img4Texture, img5Texture, img6Texture] = useTexture([
-    image1, image2, image3, image4, image5, image6
+  // Load all 45 images - useTexture handles loading efficiently
+  const allTextures = useTexture([
+    image1, image2, image3, image4, image5, image6,
+    image7, image8, image9, image10, image11, image12,
+    image13, image14, image15, image16, image17, image18,
+    image19, image20, image21, image22, image23, image24,
+    image25, image26, image27, image28, image29, image30,
+    image31, image32, image33, image34, image35, image36,
+    image37, image38, image39, image40, image41, image42,
+    image43, image44, image45
   ]);
 
-  // Optimize all textures for better performance
-  [img1Texture, img2Texture, img3Texture, img4Texture, img5Texture, img6Texture].forEach(texture => {
+  // Optimize all textures for better performance and faster loading
+  allTextures.forEach(texture => {
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.generateMipmaps = false;
     texture.anisotropy = 1; // Reduce anisotropic filtering for better performance
   });
+
+  // Helper function to check if two positions are too close (collision detection)
+  const isTooClose = (pos1: {x?: number, z?: number, y: number}, pos2: {x?: number, z?: number, y: number}, minDistance: number) => {
+    const dx = (pos1.x ?? 0) - (pos2.x ?? 0);
+    const dz = (pos1.z ?? 0) - (pos2.z ?? 0);
+    const dy = pos1.y - pos2.y;
+    const distance = Math.sqrt(dx * dx + dz * dz + dy * dy);
+    return distance < minDistance;
+  };
+
+  // Generate random scattered positions for back wall (no heart shape)
+  const backWallPositions = useMemo(() => {
+    const positions: Array<{x: number, y: number, size: number, rotation: number, colorIndex: number}> = [];
+    const minDistance = 1.2; // Minimum distance between pictures
+    const maxAttempts = 200; // Maximum attempts to find a valid position
+    const numPictures = 20; // Number of pictures for back wall
+    
+    for (let i = 0; i < numPictures; i++) {
+      let attempts = 0;
+      let validPosition = false;
+      let newPos: {x: number, y: number, size: number, rotation: number, colorIndex: number} | null = null;
+      
+      while (!validPosition && attempts < maxAttempts) {
+        newPos = {
+          x: -8 + Math.random() * 16, // Random X between -8 and 8
+          y: 1.5 + Math.random() * 3.5, // Random Y between 1.5 and 5
+          size: 0.5 + Math.random() * 0.3, // Varying sizes
+          rotation: (Math.random() - 0.5) * 0.3, // Random rotation
+          colorIndex: Math.floor(Math.random() * 8)
+        };
+        
+        // Check collision with existing positions
+        validPosition = true;
+        for (const existingPos of positions) {
+          if (isTooClose({x: newPos.x, y: newPos.y}, {x: existingPos.x, y: existingPos.y}, minDistance)) {
+            validPosition = false;
+            break;
+          }
+        }
+        attempts++;
+      }
+      
+      if (newPos && validPosition) {
+        positions.push(newPos);
+      }
+    }
+    return positions;
+  }, []);
+
+  // Generate random positions for side walls with collision detection
+  // Left wall: random positions (15 pictures, indices 26-40)
+  const leftWallPositions = useMemo(() => {
+    const positions: Array<{z: number, y: number, size: number, rotation: number, colorIndex: number}> = [];
+    const minDistance = 1.2; // Minimum distance between pictures
+    const maxAttempts = 100; // Maximum attempts to find a valid position
+    
+    for (let i = 0; i < 15; i++) {
+      let attempts = 0;
+      let validPosition = false;
+      let newPos: {z: number, y: number, size: number, rotation: number, colorIndex: number} | null = null;
+      
+      while (!validPosition && attempts < maxAttempts) {
+        newPos = {
+          z: -7 + Math.random() * 14,
+          y: 1.5 + Math.random() * 3.5,
+          size: 0.7 + Math.random() * 0.3,
+          rotation: (Math.random() - 0.5) * 0.3,
+          colorIndex: Math.floor(Math.random() * 8)
+        };
+        
+        // Check collision with existing positions
+        validPosition = true;
+        for (const existingPos of positions) {
+          if (isTooClose({z: newPos.z, y: newPos.y}, {z: existingPos.z, y: existingPos.y}, minDistance)) {
+            validPosition = false;
+            break;
+          }
+        }
+        attempts++;
+      }
+      
+      if (newPos && validPosition) {
+        positions.push(newPos);
+      }
+    }
+    return positions;
+  }, []);
+  
+  // Right wall: random positions (15 pictures, remaining indices)
+  const rightWallPositions = useMemo(() => {
+    const positions: Array<{z: number, y: number, size: number, rotation: number, colorIndex: number}> = [];
+    const minDistance = 1.2; // Minimum distance between pictures
+    const maxAttempts = 100; // Maximum attempts to find a valid position
+    
+    for (let i = 0; i < 15; i++) {
+      let attempts = 0;
+      let validPosition = false;
+      let newPos: {z: number, y: number, size: number, rotation: number, colorIndex: number} | null = null;
+      
+      while (!validPosition && attempts < maxAttempts) {
+        newPos = {
+          z: -7 + Math.random() * 14,
+          y: 1.5 + Math.random() * 3.5,
+          size: 0.7 + Math.random() * 0.3,
+          rotation: (Math.random() - 0.5) * 0.3,
+          colorIndex: Math.floor(Math.random() * 8)
+        };
+        
+        // Check collision with existing positions
+        validPosition = true;
+        for (const existingPos of positions) {
+          if (isTooClose({z: newPos.z, y: newPos.y}, {z: existingPos.z, y: existingPos.y}, minDistance)) {
+            validPosition = false;
+            break;
+          }
+        }
+        attempts++;
+      }
+      
+      if (newPos && validPosition) {
+        positions.push(newPos);
+      }
+    }
+    return positions;
+  }, []);
+
+  const frameColors = ["#ffd700", "#ffc0cb", "#daa520", "#c0c0c0", "#dda0dd", "#f0e68c", "#ffb6c1", "#dda0dd"];
 
   return (
     <>
@@ -121,68 +295,66 @@ const TexturedObjects = () => {
         imageUrl={image6}
       />
 
-      {/* Photo frames gallery on back wall - REDUCED for performance */}
-      {/* Row 1 - Top */}
-      {[-6, 0, 6].map((x, i) => {
-        const textures = [img1Texture, img3Texture, img5Texture];
-        const dims = calculateFrameDimensions(textures[i], 1.0);
+      {/* Photo frames gallery on back wall - RANDOM SCATTERED */}
+      {backWallPositions.map((pos, i) => {
+        const textureIndex = 6 + i; // Start from image 7 (index 6)
+        if (textureIndex >= allTextures.length) return null;
+        const texture = allTextures[textureIndex];
+        const dims = calculateFrameDimensions(texture, pos.size); // Use fixed size from useMemo
         return (
-          <group key={`back-top-${i}`} position={[x, 3.5, -9.9]}>
+          <group key={`back-${i}`} position={[pos.x, pos.y, -9.9]} rotation={[0, pos.rotation, 0]}>
             <Box args={[dims.frameWidth, dims.frameHeight, 0.08]} castShadow>
-              <meshStandardMaterial color="#ffd700" metalness={0.8} roughness={0.2} />
+              <meshStandardMaterial color={frameColors[pos.colorIndex]} metalness={0.8} roughness={0.2} />
             </Box>
             <Plane args={[dims.photoWidth, dims.photoHeight]} position={[0, 0, 0.05]}>
-              <meshStandardMaterial map={textures[i]} />
-            </Plane>
-          </group>
-        );
-      })}
-      
-      {/* Row 2 - Middle - REDUCED */}
-      {[-6, 0, 6].map((x, i) => {
-        const textures = [img6Texture, img2Texture, img4Texture];
-        const dims = calculateFrameDimensions(textures[i], 0.9);
-        return (
-          <group key={`back-mid-${i}`} position={[x, 2, -9.9]}>
-            <Box args={[dims.frameWidth, dims.frameHeight, 0.08]} castShadow>
-              <meshStandardMaterial color="#ffc0cb" metalness={0.7} roughness={0.3} />
-            </Box>
-            <Plane args={[dims.photoWidth, dims.photoHeight]} position={[0, 0, 0.05]}>
-              <meshStandardMaterial map={textures[i]} />
+              <meshStandardMaterial map={texture} />
             </Plane>
           </group>
         );
       })}
 
-      {/* Left wall gallery - REDUCED */}
-      {[[-9.9, 3, -6], [-9.9, 3, 0], [-9.9, 3, 6]].map((pos, i) => {
-        const textures = [img3Texture, img5Texture, img1Texture];
-        const dims = calculateFrameDimensions(textures[i], 0.9);
+      {/* Left wall gallery - RANDOM SCATTERED (FIXED POSITIONS) */}
+      {leftWallPositions.map((pos, i) => {
+        const textureIndex = 26 + i; // Start from image 27 (index 26)
+        if (textureIndex >= allTextures.length) return null;
+        const texture = allTextures[textureIndex];
+        const dims = calculateFrameDimensions(texture, pos.size); // Use fixed size from useMemo
+        const rotationY = Math.PI / 2 + pos.rotation;
         return (
-          <group key={`left-${i}`} position={pos as [number, number, number]} rotation={[0, Math.PI / 2, 0]}>
+          <group key={`left-${i}`} position={[-9.9, pos.y, pos.z]} rotation={[0, rotationY, 0]}>
             <Box args={[dims.frameWidth, dims.frameHeight, 0.08]} castShadow>
-              <meshStandardMaterial color="#daa520" metalness={0.8} roughness={0.2} />
-            </Box>
+              <meshStandardMaterial color={frameColors[pos.colorIndex]} metalness={0.8} roughness={0.2} />
+        </Box>
             <Plane args={[dims.photoWidth, dims.photoHeight]} position={[0, 0, 0.05]}>
-              <meshStandardMaterial map={textures[i]} />
-            </Plane>
-          </group>
+              <meshStandardMaterial map={texture} />
+        </Plane>
+      </group>
         );
       })}
 
-      {/* Right wall gallery - REDUCED */}
-      {[[9.9, 3, -6], [9.9, 3, 0], [9.9, 3, 6]].map((pos, i) => {
-        const textures = [img2Texture, img4Texture, img6Texture];
-        const dims = calculateFrameDimensions(textures[i], 0.9);
+      {/* Right wall gallery - RANDOM SCATTERED (FIXED POSITIONS) */}
+      {rightWallPositions.map((pos, i) => {
+        let textureIndex;
+        if (i < 5) {
+          // First 5: use images 41-45 (indices 40-44)
+          textureIndex = 40 + i;
+        } else {
+          // Remaining 10: use images 7-16 (indices 6-15)
+          textureIndex = 6 + (i - 5);
+        }
+        if (textureIndex >= allTextures.length) return null;
+        const texture = allTextures[textureIndex];
+        const dims = calculateFrameDimensions(texture, pos.size); // Use fixed size from useMemo
+        const rotationY = -Math.PI / 2 + pos.rotation;
         return (
-          <group key={`right-${i}`} position={pos as [number, number, number]} rotation={[0, -Math.PI / 2, 0]}>
+          <group key={`right-${i}`} position={[9.9, pos.y, pos.z]} rotation={[0, rotationY, 0]}>
             <Box args={[dims.frameWidth, dims.frameHeight, 0.08]} castShadow>
-              <meshStandardMaterial color="#c0c0c0" metalness={0.8} roughness={0.2} />
-            </Box>
+              <meshStandardMaterial color={frameColors[pos.colorIndex]} metalness={0.8} roughness={0.2} />
+        </Box>
             <Plane args={[dims.photoWidth, dims.photoHeight]} position={[0, 0, 0.05]}>
-              <meshStandardMaterial map={textures[i]} />
-            </Plane>
-          </group>
+              <meshStandardMaterial map={texture} />
+        </Plane>
+      </group>
         );
       })}
     </>

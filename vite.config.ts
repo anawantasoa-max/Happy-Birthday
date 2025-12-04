@@ -15,4 +15,27 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Enable code splitting for better loading performance
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate Three.js and React Three Fiber into their own chunks
+          'three': ['three', '@react-three/fiber', '@react-three/drei'],
+          // Separate vendor libraries
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
+    // Optimize chunk size
+    chunkSizeWarningLimit: 1000,
+    // Enable minification (using esbuild - faster and built-in)
+    minify: 'esbuild',
+    // Optimize asset handling
+    assetsInlineLimit: 4096, // Inline assets smaller than 4kb
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['three', '@react-three/fiber', '@react-three/drei'],
+  },
 }));

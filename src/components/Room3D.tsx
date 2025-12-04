@@ -1,7 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { PointerLockControls, Sky, Stars } from "@react-three/drei";
-import { Suspense, useState, useEffect, useRef } from "react";
-import { RoomContent } from "./RoomContent";
+import { Suspense, useState, useEffect, useRef, lazy } from "react";
 import { LoadingScreen } from "./LoadingScreen";
 import { Instructions } from "./Instructions";
 import { KeyboardControls } from "./KeyboardControls";
@@ -10,6 +9,9 @@ import { ObjectInteraction } from "./ObjectInteraction";
 import { Crosshair } from "./Crosshair";
 import { BreathEffect } from "./BreathEffect";
 import songAudio from "@/assets/song.mp3";
+
+// Lazy load heavy components for faster initial load
+const RoomContent = lazy(() => import("./RoomContent").then(module => ({ default: module.RoomContent })));
 
 export const Room3D = () => {
   const [isLocked, setIsLocked] = useState(false);
@@ -156,18 +158,18 @@ export const Room3D = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isWishModalOpen]);
 
-  // Initialize and play background music
+  // Initialize background music (lazy load - only create when needed)
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio(songAudio);
       audioRef.current.loop = true;
       audioRef.current.volume = 0.5; // 50% volume
+      audioRef.current.preload = 'auto'; // Preload for faster playback
       
       // Try to play automatically (may require user interaction in some browsers)
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Audio autoplay prevented:', error);
+        playPromise.catch(() => {
           // Will play after user interaction
         });
       }
@@ -193,8 +195,8 @@ export const Room3D = () => {
     if (isLocked && audioRef.current && audioRef.current.paused) {
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Could not play audio:', error);
+        playPromise.catch(() => {
+          // Audio play failed, will retry on next interaction
         });
       }
     }
@@ -280,7 +282,9 @@ export const Room3D = () => {
             castShadow
           />
           
-          <RoomContent />
+          <Suspense fallback={null}>
+            <RoomContent />
+          </Suspense>
           
           <PointerLockControls
             onLock={() => {
